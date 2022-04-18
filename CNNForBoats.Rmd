@@ -1,0 +1,127 @@
+---
+title: "CNNForBoats"
+author: "Thomas Dahlgren"
+date: "4/17/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tensorflow)
+library(keras)
+library(tfdatasets)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars2}
+data_dir <- get_file(
+  origin = "./boats",
+  fname = "boats",
+  extract = FALSE
+)
+data_dir <- file.path(dirname(data_dir), "boats")
+images <- list.files(data_dir, pattern = ".jpg", recursive = TRUE)
+length(images)
+classes <- list.dirs(data_dir, full.names = FALSE, recursive = FALSE)
+classes
+
+list_ds <- file_list_dataset(file_pattern = paste0(data_dir, "/*/*"))
+
+list_ds %>% reticulate::as_iterator() %>% reticulate::iter_next()
+```
+
+## Including Plots
+
+
+```{r pressure}
+get_label <- function(file_path) {
+  parts <- tf$strings$split(file_path, "/")
+  parts[-2] %>% 
+    tf$equal(classes) %>% 
+    tf$cast(dtype = tf$float32)
+}
+
+decode_img <- function(file_path, height = 224, width = 224) {
+  
+  size <- as.integer(c(height, width))
+  
+  file_path %>% 
+    tf$io$read_file() %>% 
+    tf$image$decode_jpeg(channels = 3) %>% 
+    tf$image$convert_image_dtype(dtype = tf$float32) %>% 
+    tf$image$resize(size = size)
+}
+
+preprocess_path <- function(file_path) {
+  list(
+    decode_img(file_path),
+    get_label(file_path)
+  )
+}
+```
+
+```{r}
+labeled_ds <- list_ds %>% 
+  dataset_map(preprocess_path, num_parallel_calls = tf$data$experimental$AUTOTUNE)
+labeled_ds %>% 
+  reticulate::as_iterator() %>% 
+  reticulate::iter_next()
+```
+```{r}
+prepare <- function(ds, batch_size, shuffle_buffer_size) {
+  
+  if (shuffle_buffer_size > 0)
+    ds <- ds %>% dataset_shuffle(shuffle_buffer_size)
+  
+  ds %>% 
+    dataset_batch(batch_size) %>% 
+    # `prefetch` lets the dataset fetch batches in the background while the model
+    # is training.
+    dataset_prefetch(buffer_size = tf$data$experimental$AUTOTUNE)
+}
+par(mfcol=c(5,5))
+par(mar=c(0, 0, 1.5, 0), xaxs='i', yaxs='i')
+
+```
+
+```{r}
+
+model <- keras_model_sequential() %>% 
+  layer_conv_2d(filters = 32, kernel_size = c(3,3), activation = "relu", 
+                input_shape = c(32,32,3)) %>% 
+  layer_max_pooling_2d(pool_size = c(2,2)) %>% 
+  layer_conv_2d(filters = 64, kernel_size = c(3,3), activation = "relu") %>% 
+  layer_max_pooling_2d(pool_size = c(2,2)) %>% 
+  layer_conv_2d(filters = 64, kernel_size = c(3,3), activation = "relu")
+
+model %>% 
+  layer_flatten() %>% 
+  layer_dense(units = 64, activation = "relu") %>% 
+  layer_dense(units = 9, activation = "softmax")
+model %>% compile(
+  optimizer = "adam",
+  loss = "sparse_categorical_crossentropy",
+  metrics = "accuracy"
+)
+
+model %>% 
+  fit(
+    prepare(labeled_ds, batch_size = 32, shuffle_buffer_size = 1000),
+    epochs = 5,
+    verbose = 2
+  )
+
+summary(model)
+evaluate(model, cifar$test$x, cifar$test$y, verbose = 0)
+```
+
+```{r}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
