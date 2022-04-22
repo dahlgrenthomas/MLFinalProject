@@ -81,10 +81,10 @@ irisdf[2] <- lapply(irisdf[2],catToNum2)
 irisdf[2] <- lapply(irisdf[2],catToNum3)
 irisdf[2] <- lapply(irisdf[2],catToNum4)
 irisdf[2] <- lapply(irisdf[2],strtoi) # Apparently the category numbers in irisdf[5] are stored as strings; convert to numbers
-irisdf[3] <- irisdf[3]/max(irisdf[3])
-irisdf[4] <- irisdf[4]/max(irisdf[4])
-irisdf[5] <- irisdf[5]/max(irisdf[5])
-irisdf[6] <- irisdf[6]/max(irisdf[6])
+#irisdf[3] <- irisdf[3]/max(irisdf[3])
+#irisdf[4] <- irisdf[4]/max(irisdf[4])
+#irisdf[5] <- irisdf[5]/max(irisdf[5])
+#irisdf[6] <- irisdf[6]/max(irisdf[6])
 
 head(irisdf)
 ```
@@ -114,8 +114,8 @@ yTest <- to_categorical(testing$FUEL, num_classes = 4)
 #64 nodes
 model = keras_model_sequential() %>%
   layer_flatten() %>% 
-  layer_dense(units = 64, activation = "relu",input_shape=(5)) %>%
-  layer_dense(units = 64, activation = "relu") %>%
+  layer_dense(units = 128, activation = "relu",input_shape=(5)) %>%
+  layer_dense(units = 128, activation = "relu") %>%
   layer_dense(units = ncol(yTr), activation = "softmax")
 
 
