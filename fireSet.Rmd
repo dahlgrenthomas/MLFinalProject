@@ -1,0 +1,151 @@
+---
+title: "fireSet"
+author: "Thomas Dahlgren"
+date: "4/12/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## dataframes 
+```{r}
+library(keras)
+library(tfdatasets)
+
+
+#Loading a csv file
+irisdf <- read.csv("firePutOut.csv")
+
+# Various syntax for R dataframes
+summary(irisdf)
+
+head(irisdf)
+
+# You can refer to columns by name or by number:
+head(irisdf[1]) # head takes the first few elements
+
+head(irisdf$DESIBEL)
+
+head(irisdf["FUEL"])
+```
+
+
+```{r}
+#You can refer to rows by numbers, note difference from columns:
+irisdf[5,]
+
+#Ranges of columns:
+head(irisdf[1:3])
+
+#Ranges of rows:
+irisdf[1:3,]
+```
+
+## Data preprocessing
+
+```{r}
+
+# Changing strings to categories
+
+# Nested ifelse doesn't work on a column, so we use 3 functions, applied one by one: 
+
+catToNum1 <- function(c) {
+  ifelse (c == "gasoline",0,c) 
+}
+
+
+catToNum2 <- function(c) {
+  ifelse (c == "thinner",1,c)
+}
+
+catToNum3 <- function(c) {
+  ifelse (c == "kerosene",2,c)
+}
+catToNum4 <- function(c) {
+  ifelse (c == "lpg",3,c)
+}
+
+# Testing the functions
+
+catToNum1("gasoline")
+catToNum2("thinner")
+catToNum3("kerosene")
+catToNum4("lpg")
+
+# Note: changes it in place! 
+# Also the function is applied to the entire column - many (but not all) functions in R may be used this way
+irisdf[2] <- lapply(irisdf[2],catToNum1)
+irisdf[2] <- lapply(irisdf[2],catToNum2)
+irisdf[2] <- lapply(irisdf[2],catToNum3)
+irisdf[2] <- lapply(irisdf[2],catToNum4)
+irisdf[2] <- lapply(irisdf[2],strtoi) # Apparently the category numbers in irisdf[5] are stored as strings; convert to numbers
+irisdf[3] <- irisdf[3]/max(irisdf[3])
+irisdf[4] <- irisdf[4]/max(irisdf[4])
+irisdf[5] <- irisdf[5]/max(irisdf[5])
+irisdf[6] <- irisdf[6]/max(irisdf[6])
+
+head(irisdf)
+```
+
+## Splitting data into training and testing
+
+```{r}
+sample_size <- 14000
+set.seed(1234) # setting random seed to make results repeatable
+
+picked <- sample(seq_len(nrow(irisdf)),size = sample_size)
+training <- irisdf[picked,]
+testing <- irisdf[-picked,]
+
+yTr <- to_categorical(training$FUEL, num_classes = 4)
+yTest <- to_categorical(testing$FUEL, num_classes = 4)
+
+
+# Changing y into categorical data (performing one-hot encoding)
+
+
+```
+
+## Neural network for the iris example
+
+```{r}
+#64 nodes
+model = keras_model_sequential() %>%
+  layer_flatten() %>% 
+  layer_dense(units = 64, activation = "relu",input_shape=(5)) %>%
+  layer_dense(units = 64, activation = "relu") %>%
+  layer_dense(units = ncol(yTr), activation = "softmax")
+
+
+model %>% compile(
+  loss = "categorical_crossentropy",
+  optimizer = "adam", #optimizer_rmsprop(),
+  metrics = "accuracy"
+)
+
+xTr <- as.matrix(training[,3:7])
+xTest <- as.matrix(testing[,3:7])
+
+model %>% 
+  fit(
+    x = xTr, # input is the first 4 columns of the dataframe
+    y = yTr, # label is the last column
+    epochs = 45
+  )
+
+```
+
+# Evaluate the model
+```{r}
+model %>% evaluate(xTest, yTest)
+
+# Predicting likelihood of all categories:
+result <- model %>% predict(xTest)
+
+result
+
+testing[,2][892:1000]
+
+```
