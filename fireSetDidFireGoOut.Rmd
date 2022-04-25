@@ -143,7 +143,7 @@ first_history <- first_model %>%
   fit(
     x = xTr, # input is the first 4 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 50,
+    epochs = 20,
     validation_data = list(xTest, yTest),
     verbose = 2
   )
@@ -175,7 +175,7 @@ dropout_history <- dropout_model %>%
   fit(
     x = xTr, # input is the first 4 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 50,
+    epochs = 20,
     validation_data = list(xTest, yTest),
     verbose = 2
   )
@@ -183,7 +183,7 @@ dropout_history <- dropout_model %>%
 ```
 ```{r}
 #64 nodes
-dropout_model = keras_model_sequential() %>%
+l2_model = keras_model_sequential() %>%
     layer_dense(units = 64, activation = "relu",
               kernel_regularizer = regularizer_l2(l = 0.001)) %>%
   layer_dense(units = 64, activation = "relu",
@@ -191,7 +191,7 @@ dropout_model = keras_model_sequential() %>%
   layer_dense(units = 1, activation = "sigmoid")
 
 
-dropout_model %>% compile(
+l2_model %>% compile(
   loss = "binary_crossentropy",
   metrics = list("binary_accuracy"),
   optimizer = "adam"
@@ -203,11 +203,11 @@ yTr <- as.matrix(training[,7:7])
 xTest <- as.matrix(testing[,1:6])
 yTest <- as.matrix(testing[,7:7])
 
-dropout_history <- dropout_model %>% 
+l2_history <- l2_model %>% 
   fit(
     x = xTr, # input is the first 4 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 50,
+    epochs = 20,
     validation_data = list(xTest, yTest),
     verbose = 2
   )
@@ -237,6 +237,7 @@ ggplot(compare_cx, aes(x = rowname, y = value, color = type)) +
 ```{r}
 first_model %>% evaluate(xTest, yTest)
 dropout_model %>% evaluate(xTest, yTest)
+l2_model %>% evaluate(xTest, yTest)
 
 #predictions <- predict(model, xTest)
 #head(predictions, 2)
