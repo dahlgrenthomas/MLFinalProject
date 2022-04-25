@@ -81,10 +81,10 @@ irisdf[2] <- lapply(irisdf[2],catToNum2)
 irisdf[2] <- lapply(irisdf[2],catToNum3)
 irisdf[2] <- lapply(irisdf[2],catToNum4)
 irisdf[2] <- lapply(irisdf[2],strtoi) # Apparently the category numbers in irisdf[5] are stored as strings; convert to numbers
-#irisdf[3] <- irisdf[3]/max(irisdf[3])
-#irisdf[4] <- irisdf[4]/max(irisdf[4])
-#irisdf[5] <- irisdf[5]/max(irisdf[5])
-#irisdf[6] <- irisdf[6]/max(irisdf[6])
+irisdf[3] <- irisdf[3]/max(irisdf[3])
+irisdf[4] <- irisdf[4]/max(irisdf[4])
+irisdf[5] <- irisdf[5]/max(irisdf[5])
+irisdf[6] <- irisdf[6]/max(irisdf[6])
 
 head(irisdf)
 ```
@@ -99,11 +99,16 @@ picked <- sample(seq_len(nrow(irisdf)),size = sample_size)
 training <- irisdf[picked,]
 testing <- irisdf[-picked,]
 
-yTr <- to_categorical(training$FUEL, num_classes = 4)
-yTest <- to_categorical(testing$FUEL, num_classes = 4)
-
+#write.csv(training,"training.csv", row.names = FALSE)
+#write.csv(testing,"testing.csv", row.names = FALSE)
 
 # Changing y into categorical data (performing one-hot encoding)
+
+#yTr <- to_categorical(training$STATUS, num_classes = 2)
+#yTest <- to_categorical(testing$STATUS, num_classes = 2)
+
+
+
 
 
 ```
@@ -114,26 +119,27 @@ yTest <- to_categorical(testing$FUEL, num_classes = 4)
 #64 nodes
 model = keras_model_sequential() %>%
   layer_flatten() %>% 
-  layer_dense(units = 128, activation = "relu",input_shape=(5)) %>%
-  layer_dense(units = 128, activation = "relu") %>%
-  layer_dense(units = ncol(yTr), activation = "softmax")
+  layer_dense(units = 64, activation = "relu") %>%
+  layer_dense(units = 64, activation = "relu") %>%
+  layer_dense(units = 1, activation = "sigmoid")
 
 
 model %>% compile(
-  loss = "categorical_crossentropy",
-  optimizer = "adam", #optimizer_rmsprop(),
-  metrics = "accuracy"
+  loss = loss_binary_crossentropy,
+  optimizer = "adam", 
+  metrics = "binary_accuracy"
 )
 
-xTr <- as.matrix(training[,3:7])
-xTest <- as.matrix(testing[,3:7])
+xTr <- as.matrix(training[,1:6])
+yTr <- as.matrix(training[,7:7])
+xTest <- as.matrix(testing[,1:6])
+yTest <- as.matrix(testing[,7:7])
 
 model %>% 
   fit(
     x = xTr, # input is the first 4 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 10
-    
+    epochs = 15,
   )
 
 ```
@@ -142,11 +148,9 @@ model %>%
 ```{r}
 model %>% evaluate(xTest, yTest)
 
-# Predicting likelihood of all categories:
-result <- model %>% predict(xTest)
+predictions <- predict(model, xTest)
+head(predictions, 2)
 
-result
-
-testing[,2][892:1000]
+testing[,7][1:2]
 
 ```

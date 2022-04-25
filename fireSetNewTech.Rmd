@@ -1,0 +1,118 @@
+---
+title: "fireSetNewTest"
+author: "Thomas Dahlgren"
+date: "4/24/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## dataframes 
+```{r}
+library(keras)
+library(tfdatasets)
+library(tidyverse)
+
+df <- read_csv("firePutOut.csv")
+glimpse(df)
+
+# first we split between training and testing sets
+split <- initial_split(df, prop = 4/5)
+train <- training(split)
+test <- testing(split)
+
+# the we split the training set into validation and training
+split <- initial_split(train, prop = 4/5)
+train <- training(split)
+val <- testing(split)
+
+nrow(train)
+```
+
+
+
+```{r}
+df_to_dataset <- function(df, shuffle = TRUE, batch_size = 32) {
+  ds <- df %>% 
+    tensor_slices_dataset()
+  
+  if (shuffle)
+    ds <- ds %>% dataset_shuffle(buffer_size = nrow(df))
+  
+  ds %>% 
+    dataset_batch(batch_size = batch_size)
+}
+batch_size <- 5
+train_ds <- df_to_dataset(train, batch_size = batch_size)
+val_ds <- df_to_dataset(val, shuffle = FALSE, batch_size = batch_size)
+test_ds <- df_to_dataset(test, shuffle = FALSE, batch_size = batch_size)
+
+train_ds %>% 
+  reticulate::as_iterator() %>% 
+  reticulate::iter_next() %>% 
+  str()
+```
+
+## Data preprocessing
+
+```{r}
+spec <- feature_spec(train_ds, STATUS ~ .)
+spec <- spec %>% 
+  step_numeric_column(
+    all_numeric(),
+    normalizer_fn = scaler_standard()
+  ) %>% 
+  step_categorical_column_with_vocabulary_list(FUEL)
+```
+
+
+```{r}
+spec
+```
+
+## Splitting data into training and testing
+
+```{r}
+
+
+spec_prep <- fit(spec)
+
+
+```
+
+## Neural network for the iris example
+
+```{r}
+str(spec_prep$dense_features())
+
+```
+
+# Evaluate the model
+```{r}
+model <- keras_model_sequential() %>% 
+  layer_dense_features(dense_features(spec_prep)) %>% 
+  layer_dense(units = 32, activation = "relu") %>% 
+  layer_dense(units = 1, activation = "sigmoid")
+
+
+model %>% compile(
+  loss = loss_binary_crossentropy, 
+  optimizer = "adam", 
+  metrics = "binary_accuracy"
+)
+history <- model %>% 
+  fit(
+    dataset_use_spec(train_ds, spec = spec_prep),
+    epochs = 15, 
+    validation_data = dataset_use_spec(val_ds, spec_prep),
+    verbose = 2
+  )
+```
+
+```{r}
+pred <- predict(model, test)
+Metrics::auc(test$STATUS, pred)
+```
+
