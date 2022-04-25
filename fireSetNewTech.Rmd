@@ -61,7 +61,7 @@ train_ds %>%
 spec <- feature_spec(train_ds, STATUS ~ .)
 spec <- spec %>% 
   step_numeric_column(
-    all_numeric(),
+    all_numeric(), -SIZE, -DISTANCE, -DESIBEL, -AIRFLOW, -FREQUENCY,
     normalizer_fn = scaler_standard()
   ) %>% 
   step_categorical_column_with_vocabulary_list(FUEL)
