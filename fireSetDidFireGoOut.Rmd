@@ -13,6 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(keras)
 library(tfdatasets)
+library(ggplot2)
+library(tidyr)
+library(tibble)
+library(dplyr)
 
 
 #Loading a csv file
@@ -114,21 +118,20 @@ testing <- irisdf[-picked,]
 ```
 
 ## Neural network for the iris example
-
 ```{r}
+
 #64 nodes
-model = keras_model_sequential() %>%
-  layer_flatten() %>% 
-  layer_dense(units = 128, activation = "relu") %>%
-  layer_dense(units = 128, activation = "relu") %>%
-  layer_dropout(0.1) %>% 
+first_model = keras_model_sequential() %>%
+  layer_dense(units = 64, activation = "relu") %>%
+  layer_dense(units = 64, activation = "relu") %>%
   layer_dense(units = 1, activation = "sigmoid")
 
 
-model %>% compile(
-  loss = loss_binary_crossentropy,
-  optimizer = "adam", 
-  metrics = "binary_accuracy"
+first_model %>% compile(
+  loss = "binary_crossentropy",
+  metrics = list("binary_accuracy"),
+  optimizer = "adam"
+  
 )
 
 xTr <- as.matrix(training[,1:6])
@@ -136,22 +139,108 @@ yTr <- as.matrix(training[,7:7])
 xTest <- as.matrix(testing[,1:6])
 yTest <- as.matrix(testing[,7:7])
 
-model %>% 
+first_history <- first_model %>% 
   fit(
     x = xTr, # input is the first 4 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 15,
+    epochs = 50,
+    validation_data = list(xTest, yTest),
+    verbose = 2
+  )
+```
+
+
+```{r}
+#64 nodes
+dropout_model = keras_model_sequential() %>%
+  layer_dense(units = 64, activation = "relu") %>%
+  layer_dropout(0.2) %>% 
+  layer_dense(units = 64, activation = "relu") %>%
+  layer_dense(units = 1, activation = "sigmoid")
+
+
+dropout_model %>% compile(
+  loss = "binary_crossentropy",
+  metrics = list("binary_accuracy"),
+  optimizer = "adam"
+  
+)
+
+xTr <- as.matrix(training[,1:6])
+yTr <- as.matrix(training[,7:7])
+xTest <- as.matrix(testing[,1:6])
+yTest <- as.matrix(testing[,7:7])
+
+dropout_history <- dropout_model %>% 
+  fit(
+    x = xTr, # input is the first 4 columns of the dataframe
+    y = yTr, # label is the last column
+    epochs = 50,
+    validation_data = list(xTest, yTest),
+    verbose = 2
   )
 
+```
+```{r}
+#64 nodes
+dropout_model = keras_model_sequential() %>%
+    layer_dense(units = 64, activation = "relu",
+              kernel_regularizer = regularizer_l2(l = 0.001)) %>%
+  layer_dense(units = 64, activation = "relu",
+              kernel_regularizer = regularizer_l2(l = 0.001)) %>%
+  layer_dense(units = 1, activation = "sigmoid")
+
+
+dropout_model %>% compile(
+  loss = "binary_crossentropy",
+  metrics = list("binary_accuracy"),
+  optimizer = "adam"
+  
+)
+
+xTr <- as.matrix(training[,1:6])
+yTr <- as.matrix(training[,7:7])
+xTest <- as.matrix(testing[,1:6])
+yTest <- as.matrix(testing[,7:7])
+
+dropout_history <- dropout_model %>% 
+  fit(
+    x = xTr, # input is the first 4 columns of the dataframe
+    y = yTr, # label is the last column
+    epochs = 50,
+    validation_data = list(xTest, yTest),
+    verbose = 2
+  )
+```
+
+
+
+```{r}
+compare_cx <- data.frame(
+  first_train = first_history$metrics$loss,
+  first_val = first_history$metrics$val_loss,
+  dropout_train = dropout_history$metrics$loss,
+  dropout_val = dropout_history$metrics$val_loss
+
+) %>%
+  rownames_to_column() %>%
+  mutate(rowname = as.integer(rowname)) %>%
+  gather(key = "type", value = "value", -rowname)
+  
+ggplot(compare_cx, aes(x = rowname, y = value, color = type)) +
+  geom_line() +
+  xlab("epoch") +
+  ylab("loss")
 ```
 
 # Evaluate the model
 ```{r}
-model %>% evaluate(xTest, yTest)
+first_model %>% evaluate(xTest, yTest)
+dropout_model %>% evaluate(xTest, yTest)
 
-predictions <- predict(model, xTest)
-head(predictions, 2)
+#predictions <- predict(model, xTest)
+#head(predictions, 2)
 
-testing[,7][1:2]
+#testing[,7][1:2]
 
 ```
