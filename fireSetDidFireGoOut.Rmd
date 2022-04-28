@@ -1,7 +1,7 @@
 ---
 title: "fireSet"
-author: "Thomas Dahlgren"
-date: "4/12/2022"
+author: "Thomas Dahlgren & Josh Quist"
+date: "4/28/2022"
 output: html_document
 ---
 
@@ -19,41 +19,21 @@ library(tibble)
 library(dplyr)
 
 
-#Loading a csv file
-irisdf <- read.csv("firePutOut.csv")
+#Loading the dataset
+firedf <- read.csv("firePutOut.csv")
 
-# Various syntax for R dataframes
-summary(irisdf)
+# Data summary
+head(firedf)
 
-head(irisdf)
-
-# You can refer to columns by name or by number:
-head(irisdf[1]) # head takes the first few elements
-
-head(irisdf$DESIBEL)
-
-head(irisdf["FUEL"])
-```
-
-
-```{r}
-#You can refer to rows by numbers, note difference from columns:
-irisdf[5,]
-
-#Ranges of columns:
-head(irisdf[1:3])
-
-#Ranges of rows:
-irisdf[1:3,]
+summary(firedf)
 ```
 
 ## Data preprocessing
 
 ```{r}
 
-# Changing strings to categories
+# Changing strings of fuel types to categories
 
-# Nested ifelse doesn't work on a column, so we use 3 functions, applied one by one: 
 
 catToNum1 <- function(c) {
   ifelse (c == "gasoline",0,c) 
@@ -78,19 +58,21 @@ catToNum2("thinner")
 catToNum3("kerosene")
 catToNum4("lpg")
 
-# Note: changes it in place! 
-# Also the function is applied to the entire column - many (but not all) functions in R may be used this way
-irisdf[2] <- lapply(irisdf[2],catToNum1)
-irisdf[2] <- lapply(irisdf[2],catToNum2)
-irisdf[2] <- lapply(irisdf[2],catToNum3)
-irisdf[2] <- lapply(irisdf[2],catToNum4)
-irisdf[2] <- lapply(irisdf[2],strtoi) # Apparently the category numbers in irisdf[5] are stored as strings; convert to numbers
-irisdf[3] <- irisdf[3]/max(irisdf[3])
-irisdf[4] <- irisdf[4]/max(irisdf[4])
-irisdf[5] <- irisdf[5]/max(irisdf[5])
-irisdf[6] <- irisdf[6]/max(irisdf[6])
+# Apply each function to the fuel column; setting each fuel to a corresponding number
+firedf[2] <- lapply(firedf[2],catToNum1)
+firedf[2] <- lapply(firedf[2],catToNum2)
+firedf[2] <- lapply(firedf[2],catToNum3)
+firedf[2] <- lapply(firedf[2],catToNum4)
 
-head(irisdf)
+
+
+# Processing data using 
+firedf[3] <- firedf[3]/max(firedf[3])
+firedf[4] <- firedf[4]/max(firedf[4])
+firedf[5] <- firedf[5]/max(firedf[5])
+firedf[6] <- firedf[6]/max(firedf[6])
+
+head(firedf)
 ```
 
 ## Splitting data into training and testing
@@ -99,25 +81,18 @@ head(irisdf)
 sample_size <- 14000
 set.seed(1234) # setting random seed to make results repeatable
 
-picked <- sample(seq_len(nrow(irisdf)),size = sample_size)
-training <- irisdf[picked,]
-testing <- irisdf[-picked,]
+picked <- sample(seq_len(nrow(firedf)),size = sample_size)
+training <- firedf[picked,]
+testing <- firedf[-picked,]
 
-#write.csv(training,"training.csv", row.names = FALSE)
-#write.csv(testing,"testing.csv", row.names = FALSE)
 
 # Changing y into categorical data (performing one-hot encoding)
 
 #yTr <- to_categorical(training$STATUS, num_classes = 2)
 #yTest <- to_categorical(testing$STATUS, num_classes = 2)
-
-
-
-
-
 ```
 
-## Neural network for the iris example
+## Neural network Setup
 ```{r}
 
 #64 nodes
@@ -141,7 +116,7 @@ yTest <- as.matrix(testing[,7:7])
 
 first_history <- first_model %>% 
   fit(
-    x = xTr, # input is the first 4 columns of the dataframe
+    x = xTr, # input is the first 6 columns of the dataframe
     y = yTr, # label is the last column
     epochs = 20,
     validation_data = list(xTest, yTest),
@@ -150,6 +125,7 @@ first_history <- first_model %>%
 ```
 
 
+## Testing model with dropout
 ```{r}
 #64 nodes
 dropout_model = keras_model_sequential() %>%
@@ -173,7 +149,7 @@ yTest <- as.matrix(testing[,7:7])
 
 dropout_history <- dropout_model %>% 
   fit(
-    x = xTr, # input is the first 4 columns of the dataframe
+    x = xTr, # input is the first 6 columns of the dataframe
     y = yTr, # label is the last column
     epochs = 20,
     validation_data = list(xTest, yTest),
@@ -181,6 +157,8 @@ dropout_history <- dropout_model %>%
   )
 
 ```
+
+## Model testing regularization
 ```{r}
 #64 nodes
 l2_model = keras_model_sequential() %>%
@@ -214,13 +192,15 @@ l2_history <- l2_model %>%
 ```
 
 
-
+## Plotting loss for all 3 models
 ```{r}
 compare_cx <- data.frame(
   first_train = first_history$metrics$loss,
   first_val = first_history$metrics$val_loss,
   dropout_train = dropout_history$metrics$loss,
-  dropout_val = dropout_history$metrics$val_loss
+  dropout_val = dropout_history$metrics$val_loss,
+  regularization_train = l2_history$metrics$loss,
+  regularization_val = l2_history$metrics$loss
 
 ) %>%
   rownames_to_column() %>%
@@ -233,7 +213,7 @@ ggplot(compare_cx, aes(x = rowname, y = value, color = type)) +
   ylab("loss")
 ```
 
-# Evaluate the model
+# Evaluate the models
 ```{r}
 first_model %>% evaluate(xTest, yTest)
 dropout_model %>% evaluate(xTest, yTest)
