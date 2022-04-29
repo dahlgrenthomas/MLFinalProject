@@ -1,7 +1,7 @@
 ---
 title: "fireSet"
-author: "Thomas Dahlgren"
-date: "4/12/2022"
+author: "Thomas Dahlgren & Josh Quist"
+date: "4/28/2022"
 output: html_document
 ---
 
@@ -19,45 +19,31 @@ library(tibble)
 library(dplyr)
 
 
+<<<<<<< HEAD
 #Loading a csv file
 irisdf <- read.csv("firePutOut.csv")
 
 #Removes lpg from our dataset since we don't want it to be part of the training, it uses different parameters
 #Only use if using the same dataset that we used, if your dataset doesn't have lpg do not include this line
 irisdf <- irisdf[1:15390,]
+=======
+#Loading the dataset
+firedf <- read.csv("firePutOut.csv")
+>>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
 
 # Various syntax for R dataframes
 summary(irisdf)
 
-head(irisdf)
 
-# You can refer to columns by name or by number:
-head(irisdf[1]) # head takes the first few elements
-
-head(irisdf$DESIBEL)
-
-head(irisdf["FUEL"])
-```
-
-
-```{r}
-#You can refer to rows by numbers, note difference from columns:
-irisdf[5,]
-
-#Ranges of columns:
-head(irisdf[1:3])
-
-#Ranges of rows:
-irisdf[1:3,]
+summary(firedf)
 ```
 
 ## Data preprocessing
 
 ```{r}
 
-# Changing strings to categories
+# Changing strings of fuel types to categories
 
-# Nested ifelse doesn't work on a column, so we use 3 functions, applied one by one: 
 
 catToNum1 <- function(c) {
   ifelse (c == "gasoline",0,c) 
@@ -92,6 +78,7 @@ irisdf[5] <- irisdf[5]/max(irisdf[5])
 irisdf[6] <- irisdf[6]/max(irisdf[6])
 
 head(irisdf)
+
 ```
 ```{r}
 #Map the correlations of the data columns
@@ -108,18 +95,32 @@ corrplot(irisdf.cor)
 sample_size <- 12000
 set.seed(1234) # setting random seed to make results repeatable
 
-picked <- sample(seq_len(nrow(irisdf)),size = sample_size)
-training <- irisdf[picked,]
-testing <- irisdf[-picked,]
+picked <- sample(seq_len(nrow(firedf)),size = sample_size)
+training <- firedf[picked,]
+testing <- firedf[-picked,]
 
 xTr <- as.matrix(training[c(1,3:6)])
 yTr <- as.matrix(training[,7:7])
 xTest <- as.matrix(testing[c(1,3:6)])
 yTest <- as.matrix(testing[,7:7])
+<<<<<<< HEAD
 
 ```
 
 ## Basic neural network
+=======
+#write.csv(training,"training.csv", row.names = FALSE)
+#write.csv(testing,"testing.csv", row.names = FALSE)
+
+
+# Changing y into categorical data (performing one-hot encoding)
+
+#yTr <- to_categorical(training$STATUS, num_classes = 2)
+#yTest <- to_categorical(testing$STATUS, num_classes = 2)
+```
+
+## Neural network Setup
+>>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
 ```{r}
 
 #64 nodes
@@ -138,7 +139,7 @@ first_model %>% compile(
 
 first_history <- first_model %>% 
   fit(
-    x = xTr, # input is the first 4 columns of the dataframe
+    x = xTr, # input is the first 6 columns of the dataframe
     y = yTr, # label is the last column
     epochs = 30,
     validation_data = list(xTest, yTest),
@@ -146,7 +147,12 @@ first_history <- first_model %>%
   )
 ```
 
+<<<<<<< HEAD
 #Using dropout
+=======
+
+## Testing model with dropout
+>>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
 ```{r}
 #64 nodes
 dropout_model = keras_model_sequential() %>%
@@ -170,7 +176,7 @@ dropout_model %>% compile(
 
 dropout_history <- dropout_model %>% 
   fit(
-    x = xTr, # input is the first 4 columns of the dataframe
+    x = xTr, # input is the first 6 columns of the dataframe
     y = yTr, # label is the last column
     epochs = 30,
     validation_data = list(xTest, yTest),
@@ -178,7 +184,12 @@ dropout_history <- dropout_model %>%
   )
 
 ```
+<<<<<<< HEAD
 #Using L2 regularization
+=======
+
+## Model testing regularization
+>>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
 ```{r}
 #64 nodes
 l2_model = keras_model_sequential() %>%
@@ -208,13 +219,19 @@ l2_history <- l2_model %>%
 ```
 
 
+<<<<<<< HEAD
 #Plotting the loss the three neural networks
+=======
+## Plotting loss for all 3 models
+>>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
 ```{r}
 compare_cx <- data.frame(
   first_train = first_history$metrics$loss,
   first_val = first_history$metrics$val_loss,
   dropout_train = dropout_history$metrics$loss,
-  dropout_val = dropout_history$metrics$val_loss
+  dropout_val = dropout_history$metrics$val_loss,
+  regularization_train = l2_history$metrics$loss,
+  regularization_val = l2_history$metrics$loss
 
 ) %>%
   rownames_to_column() %>%
