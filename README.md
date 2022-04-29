@@ -1,5 +1,14 @@
 # MLFinalProject
 Final project for ML class.
+
+## Running Instructions
+
+Import project into R Studio as a "New Project." Select "Version Control" from the next menu, and choose to import from git. Paste the url of repository into the url field. 
+
+Once the project is in R Studio, make sure all libraries are installed: keras, ggplot2, tidyr, tibble, and dplyr. 
+
+To run the code, select "Run All" from the "Run" dropdown menu.
+
 ## Design Matrix Description
 This data set for this project is located at https://www.kaggle.com/datasets/muratkokludataset/acoustic-extinguisher-fire-dataset?resource=download. This data set is from a study where sound waves were used to extinguish fires started with multiple different fuels. A few rows of the data are as follows:
 | Size | Fuel     | Distance  | Decibel | Airflow | Frequency | Status |
