@@ -21,18 +21,18 @@ library(dplyr)
 
 
 #Loading a csv file
-irisdf <- read.csv("firePutOut.csv")
+firedf <- read.csv("firePutOut.csv")
 
 #Removes lpg from our dataset since we don't want it to be part of the training, it uses different parameters
 #Only use if using the same dataset that we used, if your dataset doesn't have lpg do not include this line
-irisdf <- irisdf[1:15390,]
+firedf <- firedf[1:15390,]
 
 #Loading the dataset
 firedf <- read.csv("firePutOut.csv")
 
 
 # Various syntax for R dataframes
-summary(irisdf)
+summary(firedf)
 
 
 summary(firedf)
@@ -66,18 +66,18 @@ catToNum3("kerosene")
 
 # Note: changes it in place! 
 # Also the function is applied to the entire column - many (but not all) functions in R may be used this way
-irisdf[2] <- lapply(irisdf[2],catToNum1)
-irisdf[2] <- lapply(irisdf[2],catToNum2)
-irisdf[2] <- lapply(irisdf[2],catToNum3)
-irisdf[2] <- lapply(irisdf[2],strtoi) # Apparently the category numbers in irisdf[5] are stored as strings; convert to numbers
+firedf[2] <- lapply(firedf[2],catToNum1)
+firedf[2] <- lapply(firedf[2],catToNum2)
+firedf[2] <- lapply(firedf[2],catToNum3)
+firedf[2] <- lapply(firedf[2],strtoi) # Apparently the category numbers in firedf[5] are stored as strings; convert to numbers
 
 #Convert all the data to floats between 0 and 1
-irisdf[3] <- irisdf[3]/max(irisdf[3])
-irisdf[4] <- irisdf[4]/max(irisdf[4])
-irisdf[5] <- irisdf[5]/max(irisdf[5])
-irisdf[6] <- irisdf[6]/max(irisdf[6])
+firedf[3] <- firedf[3]/max(firedf[3])
+firedf[4] <- firedf[4]/max(firedf[4])
+firedf[5] <- firedf[5]/max(firedf[5])
+firedf[6] <- firedf[6]/max(firedf[6])
 
-head(irisdf)
+head(firedf)
 
 ```
 
@@ -86,9 +86,9 @@ head(irisdf)
 #Map the correlations of the data columns
 #Can see everything except FUEL has a correlation to STATUS
 library(corrplot)
-irisdf.cor = cor(irisdf)
-irisdf.cor
-corrplot(irisdf.cor)
+firedf.cor = cor(firedf)
+firedf.cor
+corrplot(firedf.cor)
 ```
 
 ## Splitting data into training and testing
