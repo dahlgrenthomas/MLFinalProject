@@ -19,17 +19,17 @@ library(tibble)
 library(dplyr)
 
 
-<<<<<<< HEAD
+
 #Loading a csv file
 irisdf <- read.csv("firePutOut.csv")
 
 #Removes lpg from our dataset since we don't want it to be part of the training, it uses different parameters
 #Only use if using the same dataset that we used, if your dataset doesn't have lpg do not include this line
 irisdf <- irisdf[1:15390,]
-=======
+
 #Loading the dataset
 firedf <- read.csv("firePutOut.csv")
->>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
+
 
 # Various syntax for R dataframes
 summary(irisdf)
@@ -80,6 +80,8 @@ irisdf[6] <- irisdf[6]/max(irisdf[6])
 head(irisdf)
 
 ```
+
+
 ```{r}
 #Map the correlations of the data columns
 #Can see everything except FUEL has a correlation to STATUS
@@ -103,24 +105,13 @@ xTr <- as.matrix(training[c(1,3:6)])
 yTr <- as.matrix(training[,7:7])
 xTest <- as.matrix(testing[c(1,3:6)])
 yTest <- as.matrix(testing[,7:7])
-<<<<<<< HEAD
+
 
 ```
 
-## Basic neural network
-=======
-#write.csv(training,"training.csv", row.names = FALSE)
-#write.csv(testing,"testing.csv", row.names = FALSE)
-
-
-# Changing y into categorical data (performing one-hot encoding)
-
-#yTr <- to_categorical(training$STATUS, num_classes = 2)
-#yTest <- to_categorical(testing$STATUS, num_classes = 2)
-```
 
 ## Neural network Setup
->>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
+
 ```{r}
 
 #64 nodes
@@ -147,12 +138,10 @@ first_history <- first_model %>%
   )
 ```
 
-<<<<<<< HEAD
-#Using dropout
-=======
+
 
 ## Testing model with dropout
->>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
+
 ```{r}
 #64 nodes
 dropout_model = keras_model_sequential() %>%
@@ -169,11 +158,6 @@ dropout_model %>% compile(
   
 )
 
-#xTr <- as.matrix(training[,1:6])
-#yTr <- as.matrix(training[,7:7])
-#xTest <- as.matrix(testing[,1:6])
-#yTest <- as.matrix(testing[,7:7])
-
 dropout_history <- dropout_model %>% 
   fit(
     x = xTr, # input is the first 6 columns of the dataframe
@@ -184,12 +168,9 @@ dropout_history <- dropout_model %>%
   )
 
 ```
-<<<<<<< HEAD
-#Using L2 regularization
-=======
 
-## Model testing regularization
->>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
+#Using L2 regularization
+
 ```{r}
 #64 nodes
 l2_model = keras_model_sequential() %>%
@@ -219,11 +200,9 @@ l2_history <- l2_model %>%
 ```
 
 
-<<<<<<< HEAD
-#Plotting the loss the three neural networks
-=======
+
 ## Plotting loss for all 3 models
->>>>>>> 3bf1226dabb35889e920de4a4963992127f381b0
+
 ```{r}
 compare_cx <- data.frame(
   first_train = first_history$metrics$loss,
@@ -249,6 +228,5 @@ ggplot(compare_cx, aes(x = rowname, y = value, color = type)) +
 first_model %>% evaluate(xTest, yTest)
 dropout_model %>% evaluate(xTest, yTest)
 l2_model %>% evaluate(xTest, yTest)
-
 
 ```
