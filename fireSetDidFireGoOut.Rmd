@@ -22,6 +22,7 @@ library(dplyr)
 #Loading a csv file
 irisdf <- read.csv("firePutOut.csv")
 
+
 # Various syntax for R dataframes
 summary(irisdf)
 
@@ -85,12 +86,21 @@ irisdf[2] <- lapply(irisdf[2],catToNum2)
 irisdf[2] <- lapply(irisdf[2],catToNum3)
 irisdf[2] <- lapply(irisdf[2],catToNum4)
 irisdf[2] <- lapply(irisdf[2],strtoi) # Apparently the category numbers in irisdf[5] are stored as strings; convert to numbers
+
+#Convert all the data to floats between 0 and 1
 irisdf[3] <- irisdf[3]/max(irisdf[3])
 irisdf[4] <- irisdf[4]/max(irisdf[4])
 irisdf[5] <- irisdf[5]/max(irisdf[5])
 irisdf[6] <- irisdf[6]/max(irisdf[6])
 
 head(irisdf)
+```
+
+```{r}
+library(corrplot)
+irisdf.cor = cor(irisdf)
+irisdf.cor
+corrplot(irisdf.cor)
 ```
 
 ## Splitting data into training and testing
@@ -103,6 +113,10 @@ picked <- sample(seq_len(nrow(irisdf)),size = sample_size)
 training <- irisdf[picked,]
 testing <- irisdf[-picked,]
 
+xTr <- as.matrix(training[,3:6])
+yTr <- as.matrix(training[,7:7])
+xTest <- as.matrix(testing[,3:6])
+yTest <- as.matrix(testing[,7:7])
 #write.csv(training,"training.csv", row.names = FALSE)
 #write.csv(testing,"testing.csv", row.names = FALSE)
 
@@ -134,11 +148,6 @@ first_model %>% compile(
   
 )
 
-xTr <- as.matrix(training[,1:6])
-yTr <- as.matrix(training[,7:7])
-xTest <- as.matrix(testing[,1:6])
-yTest <- as.matrix(testing[,7:7])
-
 first_history <- first_model %>% 
   fit(
     x = xTr, # input is the first 4 columns of the dataframe
@@ -166,10 +175,10 @@ dropout_model %>% compile(
   
 )
 
-xTr <- as.matrix(training[,1:6])
-yTr <- as.matrix(training[,7:7])
-xTest <- as.matrix(testing[,1:6])
-yTest <- as.matrix(testing[,7:7])
+#xTr <- as.matrix(training[,1:6])
+#yTr <- as.matrix(training[,7:7])
+#xTest <- as.matrix(testing[,1:6])
+#yTest <- as.matrix(testing[,7:7])
 
 dropout_history <- dropout_model %>% 
   fit(
@@ -198,10 +207,6 @@ l2_model %>% compile(
   
 )
 
-xTr <- as.matrix(training[,1:6])
-yTr <- as.matrix(training[,7:7])
-xTest <- as.matrix(testing[,1:6])
-yTest <- as.matrix(testing[,7:7])
 
 l2_history <- l2_model %>% 
   fit(
