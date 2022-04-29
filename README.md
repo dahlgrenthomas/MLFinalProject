@@ -29,9 +29,9 @@ We normalized all numberic categories on a min-max scale to get them all on a ra
 | 1    | 0        | 10        | 0.05263158 | 0.0000000 | 0.9600000 | 1      |
 | 1    | 0        | 10        | 0.05263158 | 0.1529412 | 0.9333333 | 1      |
 
-Looking at a correlation plot of the data, we found that the type of fuel did not have any correlation with whether or not the fire was put out. Because of this, we removed the type of fuel from our data. 
+Looking at a correlation plot of the data, we found that the type of fuel had very little correlation with whether or not the fire was put out. Because of this, we removed the type of fuel from our data. 
 
-[INSERT CORR PLOT]
+![corr](https://user-images.githubusercontent.com/77691466/166080324-f505a4e6-bcfe-44f9-aa3c-c1b1cdcbe121.png)
 
 With size removed, the final data set looks like:
 
@@ -47,6 +47,7 @@ The goal of this project is to be able to predict whether or not the fire was pu
 ## Methods
 We use tensorflow in R to create a sequential keras model.   
 
+
 ## Training
 We randomly select 12,000 entries in the data to use as training data, and leave the rest to use as testing data. We also set a random seed in order to make this process reproducible.
 
@@ -60,14 +61,25 @@ We then created a model with all the same setup as before, but using a dropout o
 Finally, we created a model still using the same setup as the first model, but this time using kernel regularization of 0.001 on each layer to see if that would help improve accuracy.
 
 ## Results
+* Model with no dropout and no regularization: 
 
-[INSERT MORE UP TO DATE SCREENSHOTS TONIGHT]
+![Original](https://user-images.githubusercontent.com/77691466/166080385-e919a71b-2732-435d-80d0-63a6ea9ff945.png)
 
-![Screenshot (27)](https://user-images.githubusercontent.com/77691466/165845746-aeccb078-b3e8-46e1-b721-21827b68687c.png)
+* Model with dropout:
 
-![comparison](https://user-images.githubusercontent.com/77691466/165845685-a85485ce-1f39-431d-b702-553bedaa7e8a.png)
+![Dropout](https://user-images.githubusercontent.com/77691466/166080401-d136ac48-8628-4366-9f1f-2fa11c4fe65d.png)
 
-We confirmed that our hypothesis was correct that since the data is closely correlated, our model is able to predict fires being put out with 93% accuracy. 
+* Model with regularization and no dropout:
+
+![regularization](https://user-images.githubusercontent.com/77691466/166080423-a4262076-1585-42e8-9936-377a2ac24231.png)
+
+All three compared: 
+
+![Screenshot (32)](https://user-images.githubusercontent.com/77691466/166080557-6fe866a5-5e2a-4d90-8d0f-b0f4f1ccbfc1.png)
+
+Using either dropout or regularization did not affect accuracy numbers very much. All three are very close to each other, with our model with no dropout and no regularization achieving the highest degree of accuracy by .16%.
+
+We confirmed that our hypothesis was correct that since the data is closely correlated, our model is able to predict fires being put out with around 91% accuracy. 
 
 ## Challenges and Future Work
 One challenge we faced was figuring out specifically what changes to make to the data. Once we normalized our data, that improved accuracy. 
