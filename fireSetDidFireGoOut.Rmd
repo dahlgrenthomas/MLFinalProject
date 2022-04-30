@@ -28,7 +28,6 @@ firedf <- read.csv("firePutOut.csv")
 firedf <- firedf[1:15390,]
 
 # Various syntax for R dataframes
-summary(firedf)
 
 
 summary(firedf)
@@ -67,7 +66,7 @@ firedf[2] <- lapply(firedf[2],catToNum2)
 firedf[2] <- lapply(firedf[2],catToNum3)
 firedf[2] <- lapply(firedf[2],strtoi) # Apparently the category numbers in firedf[5] are stored as strings; convert to numbers
 
-#Convert all the data to floats between 0 and 1
+#Convert all the data to floats between 0 and 1 to normalize data
 firedf[3] <- firedf[3]/max(firedf[3])
 firedf[4] <- firedf[4]/max(firedf[4])
 firedf[5] <- firedf[5]/max(firedf[5])
