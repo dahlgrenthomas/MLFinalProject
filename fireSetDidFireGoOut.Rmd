@@ -27,10 +27,6 @@ firedf <- read.csv("firePutOut.csv")
 #Only use if using the same dataset that we used, if your dataset doesn't have lpg do not include this line
 firedf <- firedf[1:15390,]
 
-#Loading the dataset
-firedf <- read.csv("firePutOut.csv")
-
-
 # Various syntax for R dataframes
 summary(firedf)
 
@@ -84,7 +80,7 @@ head(firedf)
 
 ```{r}
 #Map the correlations of the data columns
-#Can see everything except FUEL has a correlation to STATUS
+#Can see everything except FUEL has a noticible correlation to STATUS
 library(corrplot)
 firedf.cor = cor(firedf)
 firedf.cor
