@@ -97,17 +97,21 @@ picked <- sample(seq_len(nrow(firedf)),size = sample_size)
 training <- firedf[picked,]
 testing <- firedf[-picked,]
 
-xTr <- as.matrix(training[c(1,3:6)])
+#The matrix for the neural network if we skip adding the FUEL category
+xTr <- as.matrix(training[,c(1,3:6)])
 yTr <- as.matrix(training[,7:7])
-xTest <- as.matrix(testing[c(1,3:6)])
+xTest <- as.matrix(testing[,c(1,3:6)])
 yTest <- as.matrix(testing[,7:7])
 
-
+#If you want to include FUEL use these ones instead
+#xTr <- as.matrix(training[,1:6])
+#yTr <- as.matrix(training[,7:7])
+#xTest <- as.matrix(testing[,1:6])
+#yTest <- as.matrix(testing[,7:7])
 ```
 
 
 ## Neural network Setup
-
 ```{r}
 
 #64 nodes
@@ -128,7 +132,7 @@ first_history <- first_model %>%
   fit(
     x = xTr, # input is the first 6 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 30,
+    epochs = 35,
     validation_data = list(xTest, yTest),
     verbose = 2
   )
@@ -158,7 +162,7 @@ dropout_history <- dropout_model %>%
   fit(
     x = xTr, # input is the first 6 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 30,
+    epochs = 35,
     validation_data = list(xTest, yTest),
     verbose = 2
   )
@@ -189,7 +193,7 @@ l2_history <- l2_model %>%
   fit(
     x = xTr, # input is the first 4 columns of the dataframe
     y = yTr, # label is the last column
-    epochs = 30,
+    epochs = 35,
     validation_data = list(xTest, yTest),
     verbose = 2
   )
@@ -197,7 +201,7 @@ l2_history <- l2_model %>%
 
 
 
-## Plotting loss for all 3 models
+## Plotting loss of the training and validation data for all 3 models
 
 ```{r}
 compare_cx <- data.frame(
@@ -206,7 +210,7 @@ compare_cx <- data.frame(
   dropout_train = dropout_history$metrics$loss,
   dropout_val = dropout_history$metrics$val_loss,
   regularization_train = l2_history$metrics$loss,
-  regularization_val = l2_history$metrics$loss
+  regularization_val = l2_history$metrics$val_loss
 
 ) %>%
   rownames_to_column() %>%
@@ -221,8 +225,13 @@ ggplot(compare_cx, aes(x = rowname, y = value, color = type)) +
 
 # Evaluate the models
 ```{r}
+print("First model accuracy")
 first_model %>% evaluate(xTest, yTest)
+
+print("Dropout model accuracy")
 dropout_model %>% evaluate(xTest, yTest)
+
+print("L2 model accuracy")
 l2_model %>% evaluate(xTest, yTest)
 
 
