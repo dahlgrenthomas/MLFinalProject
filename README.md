@@ -25,11 +25,15 @@ A short description of each variable:
 * Frequency: Frequency of the audio played through the speaker.
 * Status: Whether or not the fire was put out. 0 for no, 1 for yes. 
 
+There was about an equal amount of fires extinguished to fires not extinguished and every fuel type was evenly tested for every size of fuel used, distance away, decibel, and frequency.
+
+We removed every row after 15390 because the fuel type of LPG was a gas and wasnt measured for size in the same way as the liquids.
 The status variable is the label, and there are 15,390 elements in the dataset.
 
-There are originally 4 different types of fuel: gasoline, thinner, kerosene, and liquid petroleum gas (LPG). Since the measurements of the size of fires was different for LPG, we removed that from the data. 
+There are 3 different types of fuel: gasoline, thinner, and kerosene. 
+We converted all of them into an int so gasoline become 0 and so on so the network could work with them.
 
-We normalized all numberic categories on a min-max scale to get them all on a range from 0-1 in their respective categories. We also changed the fuel category to be categorical. After the changes, the data looks like:
+We normalized all numberic categories on a min-max scale to get them all on a range from 0-1 in their respective categories. After the changes, the data looks like:
 
 | Size | Fuel     | Distance  | Decibel    | Airflow   | Frequency | Status |
 | :--: |:--------:| :--------:| :--------: | :-------: | :-------: | :----: |
@@ -43,7 +47,7 @@ We normalized all numberic categories on a min-max scale to get them all on a ra
 Looking at the correlation matrix, everything is at least somewhat correlated with our label, status.
 
 ## Goals and Hypothesis
-The goal of this project is to be able to predict whether or not the fire was put out given the 6 variables to a reasonable degree of accuracy. Our hypothesis is that we should get very good accuracy looking at the correlation plot. Since there is such a low correlation between the type of fuel and the result, removing it from the data should not hurt our accuracy very much.
+The goal of this project is to be able to predict whether or not the fire was put out given the 6 variables to a reasonable degree of accuracy. Our hypothesis is that we should get very good accuracy looking at the correlation plot. Since there is such a low correlation between the type of fuel and the result, removing it from the data might not hurt the accuracy that much.
 
 ## Methods
 We use tensorflow in R to create a sequential keras model.   
@@ -53,35 +57,52 @@ We use tensorflow in R to create a sequential keras model.
 We randomly select 12,000 entries in the data to use as training data, and leave the rest to use as testing data. We also set a random seed in order to make this process reproducible.
 
 ## Process
-We first created a model with two hidden layers using relu as an activation function. The output layer uses sigmoid as the activation function, since the result will always be binary; either the fire was put out or it wasn't.  
+We first created a model with two hidden layers of 64 nodes using relu as an activation function. The output layer uses sigmoid as the activation function, since the result will always be binary; either the fire was put out or it wasn't.  
 
-The loss was calculated using binary crossentropy, and the model uses the Adam algorithm for optimization. 
+The loss was calculated using binary crossentropy, and the model uses the adam algorithm for optimization. It was run for 35 epochs.
 
-We then created a model with all the same setup as before, but using a dropout of 0.2 to see if that would help improve the accuracy of our model.
+We then created a model with all the same setup as before, but using two hidden layers of 128 nodes and a dropout of 0.1 on one of the layers to see if that would help improve the accuracy of our model.
 
-Finally, we created a model still using the same setup as the first model, but this time using kernel regularization of 0.001 on each layer to see if that would help improve accuracy.
+Finally, we created a model using the same amount of layers and nodes as the dropout model, but this time using L2 kernel regularization of 0.001 on each layer to see if that would help improve accuracy.
+
 
 ## Results
 * Model with no dropout and no regularization: 
 
-![Original](https://user-images.githubusercontent.com/77691466/166080385-e919a71b-2732-435d-80d0-63a6ea9ff945.png)
+![runGraph](https://user-images.githubusercontent.com/77516389/166330047-6b111763-7109-42e0-bf65-4a4354a9145e.png)
 
 * Model with dropout:
 
-![Dropout](https://user-images.githubusercontent.com/77691466/166080401-d136ac48-8628-4366-9f1f-2fa11c4fe65d.png)
+![dropoutGraph](https://user-images.githubusercontent.com/77516389/166331552-821b7651-11f7-4273-8cb9-9d08510ebe39.png)
 
-* Model with regularization and no dropout:
+* Model with L2 regularization:
 
-![regularization](https://user-images.githubusercontent.com/77691466/166080423-a4262076-1585-42e8-9936-377a2ac24231.png)
+![l2Graph](https://user-images.githubusercontent.com/77516389/166331742-3ede6c06-6916-442a-aad5-6c2935e5b925.png)
 
-All three compared: 
+All three of the testing loss and testing accuracy results: 
 
-![Screenshot (32)](https://user-images.githubusercontent.com/77691466/166080557-6fe866a5-5e2a-4d90-8d0f-b0f4f1ccbfc1.png)
+![totalResults](https://user-images.githubusercontent.com/77516389/166331846-c9014fdf-d41e-42cd-85cb-54956a87f2da.png)
 
-Using either dropout or regularization did not affect accuracy numbers very much. All three are very close to each other, with our model with no dropout and no regularization achieving the highest degree of accuracy by .16%.
 
-We confirmed that our hypothesis was correct that since the data is closely correlated, our model is able to predict fires being put out with around 91% accuracy. 
+From this we can see that the dropout model was the most accurate in predicting if the fires were put out, followed by the regular model, followed by the L2 model
+
+We confirmed that our hypothesis was correct that since the data is closely correlated, our model is able to predict fires being put out with around 94% accuracy. We also tried to remove different columns of data to see if the accuracy would be afftected. Everything except fuel being removed caused the model to go below 80% accuracy while fuel would drop the accuracy about 2%. From this we decided all columns of the data would be necessary.
+
+## More Tests
+After the first tests we experimented with different numbers of nodes, more hidden layers, and more epochs for the layers to see if we could make the models even better.
+These were the results:
+| Model Type | Hidden Layers     | Nodes for each layer  | Epochs | Testing loss | Testing accuracy |
+| :--: |:--------:| :--------:| :-----: | :-----: | :-------: |
+| Regular    |  4        | 64      | 35 | 0.0916 | 0.9575 |
+| Dropout(0.2)    |  4        | 64      | 35 | 0.0925 | 0.9631 |
+| Regular    |  4        | 128      |  35 | 0.1241 | 0.9631 |
+| Regular    |  4        | 128      |  50 | 0.0711 | 0.9714 |
+| Dropout(0.1)    |  4        | 128      |   50 | 0.0775 | 0.9673 |
+| L2    |  6        | 128      | 50 | 0.1149 | 0.9649 |
+
+From these tests we have concluded that having 4 hidden layers with 128 nodes in each hidden layer was the most accurate. It out performed dropout where dropout had out performed it in the first tests we ran. There were tests with less nodes in the hidden layers but they were always of lower accuracy unless a lot of epochs were run on them.
+
 
 ## Challenges and Future Work
-One challenge we faced was figuring out specifically what changes to make to the data. Once we normalized our data, that improved accuracy. 
+One challenge we faced was figuring out specifically what changes to make to the data. Once we normalized our data, that improved accuracy. We also needed to be able to increase the accuracy on an already pretty accurate model. Since the data is pretty heavily correlated we think it would be possible to get an even higher accuracy probably around 99%.
 
