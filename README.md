@@ -38,17 +38,10 @@ We normalized all numberic categories on a min-max scale to get them all on a ra
 | 1    | 0        | 10        | 0.05263158 | 0.0000000 | 0.9600000 | 1      |
 | 1    | 0        | 10        | 0.05263158 | 0.1529412 | 0.9333333 | 1      |
 
-Looking at a correlation plot of the data, we found that the type of fuel had very little correlation with whether or not the fire was put out. Because of this, we removed the type of fuel from our data. 
 
 ![corr](https://user-images.githubusercontent.com/77691466/166080324-f505a4e6-bcfe-44f9-aa3c-c1b1cdcbe121.png)
 
-With size removed, the final data set looks like:
-
-| Size | Distance | Decibel    | Airflow   | Frequency | Status |
-| :--: |:--------:| :--------: | :-------: | :-------: | :----: |
-| 1    |10        | 0.05263158 | 0.0000000 | 1.0000000 | 0      |
-| 1    |10        | 0.05263158 | 0.0000000 | 0.9600000 | 1      |
-| 1    |10        | 0.05263158 | 0.1529412 | 0.9333333 | 1      |
+Looking at the correlation matrix, everything is at least somewhat correlated with our label, status.
 
 ## Goals and Hypothesis
 The goal of this project is to be able to predict whether or not the fire was put out given the 6 variables to a reasonable degree of accuracy. Our hypothesis is that we should get very good accuracy looking at the correlation plot. Since there is such a low correlation between the type of fuel and the result, removing it from the data should not hurt our accuracy very much.
