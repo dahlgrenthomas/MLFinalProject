@@ -1,6 +1,5 @@
 # MLFinalProject
-Final project for ML class.
-
+Final project for Machine Learning class.
 ## Running Instructions
 
 Import project into R Studio as a "New Project." Select "Version Control" from the next menu, and choose to import from git. Paste the url of repository into the url field. 
